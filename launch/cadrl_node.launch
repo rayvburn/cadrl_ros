@@ -6,9 +6,11 @@
 
     <!-- preferred speed -->
 	<arg name="robot_speed" default="1.2"/>
+    <!-- namespace of the planner node -->
+    <arg name="node_namespace" default="/JA01"/>
 
     <!-- Launch neural net ros wrapper -->
-    <node pkg="cadrl_ros" type="cadrl_node.py" name="cadrl_node" output="screen" ns="/JA01">
+    <node pkg="cadrl_ros" type="cadrl_node.py" name="cadrl_node" output="screen" ns="$(arg node_namespace)">
         
         <!-- Publications -->
         <remap from="~other_vels" to="other_vels"/>
