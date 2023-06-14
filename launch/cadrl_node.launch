@@ -1,5 +1,10 @@
 <launch>
-	<arg name="jackal_speed" default="1.2"/>
+    <!-- updates paths to Python dependencies (virtualenv created during the compilation) -->
+    <env name="PYTHONPATH" value="$(find cadrl_ros)/.venv/lib/python2.7/site-packages:$(optenv PYTHONPATH)"/>
+    <!-- NOTE: the 'site-packages' part helps with netifaces module not being found -->
+    <env name="PATH" value="$(find cadrl_ros)/.venv/bin:$(find cadrl_ros)/.venv/lib/python2.7/site-packages:$(optenv PATH)"/>
+
+    <arg name="jackal_speed" default="1.2"/>
     <!-- Launch neural net ros wrapper -->
     <node pkg="cadrl_ros" type="cadrl_node.py" name="cadrl_node" output="screen" ns="/JA01">
         

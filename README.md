@@ -27,13 +27,17 @@ Bibtex:
 
 #### Dependencies:
 
-* [TensorFlow](https://www.tensorflow.org/) is required (tested with version 1.4.0)
+* [TensorFlow](https://www.tensorflow.org/) is required (tested with version 1.12.0)
 
 * numpy is required
 
-* [ROS](http://wiki.ros.org/) is optional (tested with Kinetic on Ubuntu 16.04)
+* [ROS](http://wiki.ros.org/) is optional (tested with Melodic on Ubuntu 18.04)
 
 * [ford_msgs](https://bitbucket.org/acl-swarm/ford_msgs/src/master/) if you're using ROS, for our custom msg definitions.
+
+  ```sh
+  git clone git@bitbucket.org:acl-swarm/ford_msgs.git
+  ```
 
 #### General Notes:
 The main contribution of this software is the `network.py` file and trained model parameters (TensorFlow checkpoints).
