@@ -4,7 +4,9 @@
     <!-- NOTE: the 'site-packages' part helps with netifaces module not being found -->
     <env name="PATH" value="$(find cadrl_ros)/.venv/bin:$(find cadrl_ros)/.venv/lib/python2.7/site-packages:$(optenv PATH)"/>
 
-    <arg name="jackal_speed" default="1.2"/>
+    <!-- preferred speed -->
+	<arg name="robot_speed" default="1.2"/>
+
     <!-- Launch neural net ros wrapper -->
     <node pkg="cadrl_ros" type="cadrl_node.py" name="cadrl_node" output="screen" ns="/JA01">
         
@@ -27,7 +29,7 @@
         <remap from="~peds" to="ped_manager/ped_recent"/>
         
         <!-- Parameters -->
-        <param name="~jackal_speed" value="$(arg jackal_speed)"/>
+        <param name="~jackal_speed" value="$(arg robot_speed)"/>
 
     </node>
 </launch>
