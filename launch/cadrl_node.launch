@@ -9,26 +9,40 @@
     <!-- namespace of the planner node -->
     <arg name="node_namespace" default="/JA01"/>
 
+    <!-- exposed topic configuration -->
+    <!-- related to publishers -->
+    <arg name="cmd_vel_topic" default="nn_cmd_vel" />
+    <arg name="marker_topic_ns" default="" />
+    <!-- related to subscribers -->
+    <arg name="global_pose_topic" default="pose" />
+    <arg name="vel_topic" default="velocity" />
+    <arg name="safe_actions_topic" default="local_path_finder/safe_actions" />
+    <arg name="planner_mode_topic" default="planner_fsm/mode" />
+    <arg name="goal_topic" default="move_base_simple/goal" />
+    <arg name="pedestrian_clusters_topic" default="cluster/output/clusters" />
+    <!-- unused alternative to 'pedestrian_clusters_topic' (see 'self.use_clusters' in the node) -->
+    <arg name="pedestrians_topic" default="ped_manager/ped_recent" />
+
     <!-- Launch neural net ros wrapper -->
     <node pkg="cadrl_ros" type="cadrl_node.py" name="cadrl_node" output="screen" ns="$(arg node_namespace)">
         
         <!-- Publications -->
-        <remap from="~other_vels" to="other_vels"/>
-        <remap from="~nn_cmd_vel" to="nn_cmd_vel"/>
-        <remap from="~pose_marker" to="pose_marker"/>
-        <remap from="~path_marker" to="path_marker"/>
-        <remap from="~goal_path_marker" to="goal_path_marker"/>
-        <remap from="~agent_marker" to="other_agents_marker"/>
-        <remap from="~agent_markers" to="other_agents_markers"/>
+        <remap from="~other_vels" to="other_vels"/> <!-- seems to be deprecated -->
+        <remap from="~nn_cmd_vel" to="$(arg cmd_vel_topic)"/>
+        <remap from="~pose_marker" to="$(arg marker_topic_ns)/pose_marker"/>
+        <remap from="~path_marker" to="$(arg marker_topic_ns)/path_marker"/>
+        <remap from="~goal_path_marker" to="$(arg marker_topic_ns)/goal_path_marker"/>
+        <remap from="~agent_marker" to="$(arg marker_topic_ns)/other_agents_marker"/>
+        <remap from="~agent_markers" to="$(arg marker_topic_ns)/other_agents_markers"/> <!-- seems to be deprecated -->
         
         <!-- Subscriptions -->
-        <remap from="~pose" to="pose"/>
-        <remap from="~velocity" to="velocity"/>
-        <remap from="~safe_actions" to="local_path_finder/safe_actions"/>
-        <remap from="~planner_mode" to="planner_fsm/mode"/>
-        <remap from="~goal" to="move_base_simple/goal"/>
-        <remap from="~clusters" to="cluster/output/clusters"/>
-        <remap from="~peds" to="ped_manager/ped_recent"/>
+        <remap from="~pose" to="$(arg global_pose_topic)"/>
+        <remap from="~velocity" to="$(arg vel_topic)"/>
+        <remap from="~safe_actions" to="$(arg safe_actions_topic)"/>
+        <remap from="~planner_mode" to="$(arg planner_mode_topic)"/>
+        <remap from="~goal" to="$(arg goal_topic)"/>
+        <remap from="~clusters" to="$(arg pedestrian_clusters_topic)"/>
+        <remap from="~peds" to="$(arg pedestrians_topic)"/>
         
         <!-- Parameters -->
         <param name="~jackal_speed" value="$(arg robot_speed)"/>
