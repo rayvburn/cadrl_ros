@@ -6,6 +6,8 @@
 
     <!-- preferred speed -->
 	<arg name="robot_speed" default="1.2"/>
+    <!-- robot radius -->
+    <arg name="robot_radius" default="0.5"/>
     <!-- namespace of the planner node -->
     <arg name="node_namespace" default="/JA01"/>
 
@@ -46,6 +48,7 @@
         
         <!-- Parameters -->
         <param name="~jackal_speed" value="$(arg robot_speed)"/>
+        <param name="~jackal_radius" value="$(arg robot_radius)"/>
 
     </node>
 </launch>
