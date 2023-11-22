@@ -586,7 +586,14 @@ def run():
     veh_name = 'JA01'
     radius = rospy.get_param("~jackal_radius")
     pref_speed = rospy.get_param("~jackal_speed")
-    veh_data = {'goal':np.zeros((2,)),'radius':radius,'pref_speed':pref_speed,'kw':10.0,'kp':1.0,'name':'JA01'}
+    veh_data = {
+        'goal': np.zeros((2,)),
+        'radius': radius,
+        'pref_speed': pref_speed,
+        'kw': 10.0,
+        'kp': 1.0,
+        'name':' JA01'
+    }
 
     print("********\n*******\n*********\nJackal speed:", pref_speed, "\n**********\n******")
 
