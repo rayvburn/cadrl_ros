@@ -6,6 +6,8 @@
 
     <!-- preferred speed -->
 	<arg name="robot_speed" default="1.2"/>
+    <!-- maximum angular velocity -->
+    <arg name="max_rot_vel" default="1.0"/>
     <!-- robot radius -->
     <arg name="robot_radius" default="0.5"/>
     <!-- namespace of the planner node -->
@@ -48,6 +50,7 @@
         
         <!-- Parameters -->
         <param name="~jackal_speed" value="$(arg robot_speed)"/>
+        <param name="~max_rot_vel" value="$(arg max_rot_vel)"/>
         <param name="~jackal_radius" value="$(arg robot_radius)"/>
 
     </node>

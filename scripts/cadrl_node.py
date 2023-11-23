@@ -333,7 +333,7 @@ class NN_jackal():
             #     vw = gain*max_yaw_error*np.sign(yaw_error)
 
             twist = Twist()
-            twist.angular.z = vw
+            twist.angular.z = max(min(vw, self.veh_data['max_rot_vel']), -self.veh_data['max_rot_vel'])
             twist.linear.x = vx
             self.pub_twist.publish(twist)
             self.visualize_action(use_d_min)
@@ -346,7 +346,7 @@ class NN_jackal():
             global_yaw_error = self.psi - angle_to_goal
             if abs(global_yaw_error) > 0.5:
                 vx = 0.0
-                vw = 1.0
+                vw = self.veh_data['max_rot_vel']
                 twist = Twist()
                 twist.angular.z = vw
                 twist.linear.x = vx
@@ -404,7 +404,7 @@ class NN_jackal():
             # print "somewhat close to goal"
             pref_speed = max(min(kp_v * (host_agent.dist_to_goal-0.1), pref_speed), 0.0)
             action[0] = min(raw_action[0], pref_speed)
-            turn_amount = max(min(kp_r * (host_agent.dist_to_goal-0.1), 1.0), 0.0) * raw_action[1]
+            turn_amount = max(min(kp_r * (host_agent.dist_to_goal-0.1), self.veh_data['max_rot_vel']), 0.0) * raw_action[1]
             action[1] = util.wrap(turn_amount + self.psi)
         if host_agent.dist_to_goal < 0.3:
             self.stop_moving_flag = True
@@ -586,10 +586,12 @@ def run():
     veh_name = 'JA01'
     radius = rospy.get_param("~jackal_radius")
     pref_speed = rospy.get_param("~jackal_speed")
+    max_rot_vel = rospy.get_param("~max_rot_vel")
     veh_data = {
         'goal': np.zeros((2,)),
         'radius': radius,
         'pref_speed': pref_speed,
+        'max_rot_vel': max_rot_vel,
         'kw': 10.0,
         'kp': 1.0,
         'name':' JA01'
