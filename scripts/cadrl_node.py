@@ -499,7 +499,7 @@ class NN_jackal():
             marker.action = marker.ADD
             marker.pose.position.x = xs[i]
             marker.pose.position.y = ys[i]
-            # marker.pose.orientation = orientation
+            marker.pose.orientation.w = 1.0
             marker.scale = Vector3(x=2*radii[i],y=2*radii[i],z=1)
             marker.color = ColorRGBA(r=1.0,g=0.4,a=1.0)
             marker.lifetime = rospy.Duration(0.1)
