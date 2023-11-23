@@ -10,6 +10,8 @@
     <arg name="max_rot_vel" default="1.0"/>
     <!-- robot radius -->
     <arg name="robot_radius" default="0.5"/>
+    <!-- position tolerance to consider the goal as reached -->
+    <arg name="goal_tolerance" default="0.3"/>
     <!-- namespace of the planner node -->
     <arg name="node_namespace" default="/JA01"/>
 
@@ -52,6 +54,7 @@
         <param name="~jackal_speed" value="$(arg robot_speed)"/>
         <param name="~max_rot_vel" value="$(arg max_rot_vel)"/>
         <param name="~jackal_radius" value="$(arg robot_radius)"/>
+        <param name="~goal_tolerance" value="$(arg goal_tolerance)"/>
 
     </node>
 </launch>

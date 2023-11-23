@@ -33,7 +33,7 @@ def find_angle_diff(angle_1, angle_2):
     return angle_diff
 
 class NN_jackal():
-    def __init__(self, veh_name, veh_data, nn, actions):
+    def __init__(self, veh_name, veh_data, nn, actions, xy_goal_tolerance):
         self.node_name = rospy.get_name()
         self.prev_other_agents_state = []
 
@@ -42,6 +42,7 @@ class NN_jackal():
         self.veh_data = veh_data
 
         # self.agent = agent.Agent(0.0, 0.0, 100.0, 100.0, radius, pref_speed, initial_heading, id)
+        self.goal_tolerance = xy_goal_tolerance
         
         # neural network
         self.nn = nn
@@ -406,7 +407,8 @@ class NN_jackal():
             action[0] = min(raw_action[0], pref_speed)
             turn_amount = max(min(kp_r * (host_agent.dist_to_goal-0.1), self.veh_data['max_rot_vel']), 0.0) * raw_action[1]
             action[1] = util.wrap(turn_amount + self.psi)
-        if host_agent.dist_to_goal < 0.3:
+        if host_agent.dist_to_goal < self.goal_tolerance:
+            print("Goal reached!")
             self.stop_moving_flag = True
         else:
             self.stop_moving_flag = False
@@ -587,6 +589,7 @@ def run():
     radius = rospy.get_param("~jackal_radius")
     pref_speed = rospy.get_param("~jackal_speed")
     max_rot_vel = rospy.get_param("~max_rot_vel")
+    xy_goal_tolerance = rospy.get_param("~goal_tolerance")
     veh_data = {
         'goal': np.zeros((2,)),
         'radius': radius,
@@ -599,7 +602,7 @@ def run():
 
     print("********\n*******\n*********\nJackal speed:", pref_speed, "\n**********\n******")
 
-    nn_jackal = NN_jackal(veh_name, veh_data, nn, actions)
+    nn_jackal = NN_jackal(veh_name, veh_data, nn, actions, xy_goal_tolerance)
     rospy.on_shutdown(nn_jackal.on_shutdown)
 
     rospy.spin()
