@@ -233,8 +233,14 @@ class NN_jackal():
             # radius = PED_RADIUS
             lower_r = np.linalg.norm(np.array([msg.mean_points[i].x-msg.min_points[i].x, msg.mean_points[i].y-msg.min_points[i].y]))
             upper_r = np.linalg.norm(np.array([msg.mean_points[i].x-msg.max_points[i].x, msg.mean_points[i].y-msg.max_points[i].y]))
-            inflation_factor = 1.5
-            radius = max(PED_RADIUS, inflation_factor * max(upper_r, lower_r))
+
+            # orig: when there are unreliable perception sources (do not point out dimensions of a specific object)
+            # inflation_factor = 1.5
+            # radius = max(PED_RADIUS, inflation_factor * max(upper_r, lower_r))
+
+            # modified: perception source provides accurate dimensions of each agent
+            inflation_factor = 1.1
+            radius = inflation_factor * max(upper_r, lower_r)
 
 
             xs.append(x); ys.append(y); radii.append(radius); labels.append(index)
