@@ -504,7 +504,7 @@ class NN_jackal():
             marker.pose.orientation.w = 1.0
             marker.scale = Vector3(x=2*radii[i],y=2*radii[i],z=1)
             marker.color = ColorRGBA(r=1.0,g=0.4,a=1.0)
-            marker.lifetime = rospy.Duration(0.1)
+            marker.lifetime = rospy.Duration(0.5)
             markers.markers.append(marker)
 
         self.pub_agent_markers.publish(markers)
