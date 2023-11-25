@@ -3,6 +3,7 @@
 import rospy
 import sys
 from std_msgs.msg import Float32, ColorRGBA, Int32
+from std_msgs.msg import Float64MultiArray, MultiArrayDimension
 from geometry_msgs.msg import PoseStamped, Twist, Vector3, Point
 from ford_msgs.msg import PedTrajVec, NNActions, PlannerMode, Clusters
 from visualization_msgs.msg import Marker, MarkerArray
@@ -17,6 +18,7 @@ import os
 import time
 import random
 import math
+import threading
 
 import rospkg
 
@@ -90,6 +92,7 @@ class NN_jackal():
         self.pub_agent_markers = rospy.Publisher('~agent_markers',MarkerArray,queue_size=1)
         self.pub_path_marker = rospy.Publisher('~path_marker',Marker,queue_size=1)
         self.pub_goal_path_marker = rospy.Publisher('~goal_path_marker',Marker,queue_size=1)
+        self.comp_time = rospy.Publisher('~computation_time', Float64MultiArray, queue_size=1)
         self.sub_pose = rospy.Subscriber('~pose',PoseStamped,self.cbPose)
         self.sub_vel = rospy.Subscriber('~velocity',Vector3,self.cbVel)
         self.sub_nn_actions = rospy.Subscriber('~safe_actions',NNActions,self.cbNNActions)
@@ -102,6 +105,13 @@ class NN_jackal():
             self.sub_clusters = rospy.Subscriber('~clusters',Clusters, self.cbClusters)
         else:
             self.sub_peds = rospy.Subscriber('~peds',PedTrajVec, self.cbPeds)
+
+        # to compute duration of calculations
+        self.control_stamp_start = rospy.Time(0)
+        self.control_stamp_finish = rospy.Time(0)
+        self.nn_action_start = rospy.Time(0)
+        self.nn_action_finish = rospy.Time(0)
+        self.nn_action_timing_lock = threading.Lock()
 
         # control timer
         self.control_timer = rospy.Timer(rospy.Duration(0.01),self.cbControl)
@@ -311,9 +321,15 @@ class NN_jackal():
         return v_max
 
     def cbControl(self, event):
+        # diagnostics
+        self.control_stamp_start = rospy.Time.now()
+
         if self.goal.header.stamp == rospy.Time(0) or self.stop_moving_flag \
             and not self.new_global_goal_received:
             self.stop_moving()
+            # diagnostics
+            self.control_stamp_finish = rospy.Time.now()
+            self.publish_computation_time()
             return
         elif self.operation_mode.mode==self.operation_mode.NN:
             desired_yaw = self.desired_action[1]
@@ -343,6 +359,9 @@ class NN_jackal():
             twist.angular.z = max(min(vw, self.veh_data['max_rot_vel']), -self.veh_data['max_rot_vel'])
             twist.linear.x = vx
             self.pub_twist.publish(twist)
+            # diagnostics
+            self.control_stamp_finish = rospy.Time.now()
+            self.publish_computation_time()
             self.visualize_action(use_d_min)
             return
         elif self.operation_mode.mode == self.operation_mode.SPIN_IN_PLACE:
@@ -362,9 +381,15 @@ class NN_jackal():
                 print('Done spinning in place')
                 self.operation_mode.mode = self.operation_mode.NN
                 self.new_global_goal_received = False
+            # diagnostics
+            self.control_stamp_finish = rospy.Time.now()
+            self.publish_computation_time()
             return
         else:
             self.stop_moving()
+            # diagnostics
+            self.control_stamp_finish = rospy.Time.now()
+            self.publish_computation_time()
             return
 
     def cbComputeActionGA3C(self, event):
@@ -373,6 +398,9 @@ class NN_jackal():
             print(self.operation_mode.mode)
             return
 
+        self.nn_action_timing_lock.acquire()
+        # diagnostics
+        self.nn_action_start = rospy.Time.now()
 
         # construct agent_state
         x = self.pose.pose.position.x; y = self.pose.pose.position.y
@@ -421,6 +449,10 @@ class NN_jackal():
 
         # print 'chosen action (rel angle)', action[0], action[1]
         self.update_action(action)
+
+        # diagnostics
+        self.nn_action_finish = rospy.Time.now()
+        self.nn_action_timing_lock.release()
 
     def update_subgoal(self,subgoal):
         self.goal.pose.position.x = subgoal[0]
@@ -571,6 +603,39 @@ class NN_jackal():
         # marker.points.append(Point(x=x_min,y=y_min))
         # self.pub_goal_path_marker.publish(marker)
 
+    def publish_computation_time(self):
+        self.nn_action_timing_lock.acquire()
+        msg = Float64MultiArray()
+        ctrl_computation_time = self.control_stamp_finish - self.control_stamp_start
+        nn_action_computation_time = self.nn_action_finish - self.nn_action_start
+        msg.data = [
+            float(self.control_stamp_start.to_sec()), float(ctrl_computation_time.to_sec()),
+            float(self.nn_action_start.to_sec()), float(nn_action_computation_time.to_sec())
+        ]
+        self.nn_action_timing_lock.release()
+
+        msg.layout.data_offset = 0
+        dim_stamp_ctrl = MultiArrayDimension()
+        dim_stamp_ctrl.label = 'stamp_control'
+        dim_stamp_ctrl.size = 1
+        dim_stamp_ctrl.stride = 1
+        msg.layout.dim.append(dim_stamp_ctrl)
+        dim_ct_ctrl = MultiArrayDimension()
+        dim_ct_ctrl.label = 'computation_time_control'
+        dim_ct_ctrl.size = 1
+        dim_ct_ctrl.stride = 1
+        msg.layout.dim.append(dim_ct_ctrl)
+        dim_stamp_nn = MultiArrayDimension()
+        dim_stamp_nn.label = 'stamp_nn_action'
+        dim_stamp_nn.size = 1
+        dim_stamp_nn.stride = 1
+        msg.layout.dim.append(dim_stamp_nn)
+        dim_ct_nn = MultiArrayDimension()
+        dim_ct_nn.label = 'computation_time_nn_action'
+        dim_ct_nn.size = 1
+        dim_ct_nn.stride = 1
+        msg.layout.dim.append(dim_ct_nn)
+        self.comp_time.publish(msg)
 
     def on_shutdown(self):
         rospy.loginfo("[%s] Shutting down." %(self.node_name))
