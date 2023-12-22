@@ -74,6 +74,7 @@ For short distances, say in an open atrium, this is probably not necessary.
 #### To Run ROS version:
 Clone and build this repo and its dependency (assume destination is ~/catkin_ws/src)
 ```
+sudo apt install python-tk
 cd ~/catkin_ws/src
 git clone git@github.com/mfe7/cadrl_ros
 git clone git@bitbucket.org:acl-swarm/ford_msgs.git -b dev
